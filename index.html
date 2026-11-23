@@ -248,6 +248,18 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
     .combo { margin-bottom: .4rem; font-size: clamp(.85rem, 2.5svh, 1.2rem); }
     .combo:empty { display: none; }
     .pads { display: none; }
+    .keyboard-hint {
+      position: fixed;
+      bottom: max(1.5rem, 7svh);
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+      font-size: 1rem;
+      pointer-events: none;
+    }
+    .keyboard-hint svg { width: 1.75rem; height: auto; }
     .face {
       position: absolute;
       left: clamp(4px, 2vw, 32px);
@@ -274,6 +286,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
       .stage { --face-width: min(13vw, 24svh); --result-gap: 50px; }
     }
     @media (max-width: 767px), (max-width: 940px) and (max-height: 500px) and (pointer: coarse) {
+      .keyboard-hint { display: none; }
       .pads {
         position: fixed;
         inset-inline: 0;
@@ -335,6 +348,13 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
     <div class="result" aria-live="polite" aria-atomic="true"><div class="combo"></div><div class="word"></div><div class="score"></div></div>
     <div class="caption" aria-live="polite"></div>
     <div class="clock" role="timer" aria-label="남은 시간">30.000</div>
+    <div class="keyboard-hint" role="img" aria-label="키보드 입력: ㅇ은 D, ㅓ는 J, ㅁ은 A">
+      <svg viewBox="0 0 28 18" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+        <rect x="1" y="1" width="26" height="16" rx="3"/>
+        <path stroke-linecap="round" d="M5 5h1m4 0h1m4 0h1m4 0h1M6 9h1m4 0h1m4 0h1m4 0h1M9 13h10"/>
+      </svg>
+      <span>D · J · A</span>
+    </div>
     <div class="pads" role="group" aria-label="리듬 입력">
       <button type="button">ㅇ</button><button type="button">ㅓ</button><button type="button">ㅁ</button>
     </div>
@@ -452,7 +472,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
     const stage = document.querySelector(".stage");
     const clock = document.querySelector(".clock");
     let playing = false;
-    let deadline = 0;
+    let deadline = null;
     let points = 0;
     let bestCombo = 0;
     const words = [];
@@ -578,7 +598,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 
     function timeAvailable() {
       if (!playing) return false;
-      if (performance.now() < deadline) return true;
+      if (deadline === null || performance.now() < deadline) return true;
       playing = false;
       cancelAnimationFrame(frame);
       started = null;
@@ -604,9 +624,9 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
       if (playing) return;
       document.querySelector("#home").hidden = true;
       stage.hidden = false;
-      deadline = performance.now() + 30000;
+      deadline = null;
+      clock.textContent = "30.000";
       playing = true;
-      tickClock();
     });
     document.querySelector("#replay").addEventListener("click", () => {
       document.querySelector("#summary").hidden = true;
@@ -720,6 +740,10 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
       inputOwner = owner;
       pads[letter].classList.add("held");
       started = performance.now();
+      if (deadline === null) {
+        deadline = started + 30000;
+        tickClock();
+      }
       animate();
       return true;
     }
