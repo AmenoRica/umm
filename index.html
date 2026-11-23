@@ -398,7 +398,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
     </div>
     <div class="result-actions">
       <button id="replay" type="button">다시하기</button>
-      <button id="send-result" class="result-action" type="button">트위터에 결과 공유</button>
+      <button id="send-result" class="result-action" type="button">결과 공유</button>
     </div>
     <button id="criteria-button" type="button" aria-haspopup="dialog">등급 산출 기준</button>
     <a class="brand" href="https://ameno.cc/" aria-label="AmenoRica 홈페이지">
@@ -604,24 +604,21 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 
     let resultText = "";
     const sendResult = document.querySelector("#send-result");
-    const mobileSharing = navigator.maxTouchPoints > 0 && matchMedia("(pointer: coarse)").matches;
-    if (mobileSharing) sendResult.textContent = "결과 공유";
     sendResult.addEventListener("click", async () => {
-      if (mobileSharing) {
-        if (navigator.share) {
-          try {
-            await navigator.share({ text: resultText });
-            return;
-          } catch (error) {
-            if (error.name === "AbortError") return;
-          }
+      if (navigator.share) {
+        try {
+          await navigator.share({ text: resultText });
+          return;
+        } catch (error) {
+          if (error.name === "AbortError") return;
         }
-        window.prompt("결과를 복사하세요", resultText);
-        return;
       }
-      const url = new URL("https://twitter.com/intent/tweet");
-      url.searchParams.set("text", resultText);
-      window.open(url.href, "_blank", "noopener,noreferrer");
+      try {
+        await navigator.clipboard.writeText(resultText);
+        sendResult.textContent = "복사했어요";
+      } catch {
+        window.prompt("결과를 복사하세요", resultText);
+      }
     });
 
     function timeAvailable() {
@@ -635,6 +632,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
       document.querySelector("#points").textContent = points + "점";
       document.querySelector("#best").textContent = bestCombo;
       const grade = grades.findLast(entry => points >= entry.min);
+      sendResult.textContent = "결과 공유";
       document.querySelector("#grade").textContent = grade.rank;
       document.querySelector("#verdict").textContent = grade.text;
       const gradePath = grade.rank.toLowerCase().replace("+", "-plus");
