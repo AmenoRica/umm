@@ -103,13 +103,14 @@
       position: absolute;
       bottom: calc(100% + var(--result-gap));
       justify-self: center;
-      font-size: min(7rem, 18svh, calc(88vw / var(--letters, 1)));
+      font-size: min(9rem, 22svh, calc(88vw / var(--letters, 1)));
       text-align: center;
       white-space: nowrap;
       font-weight: 700;
       line-height: 1;
       pointer-events: none;
     }
+    .word { font-size: var(--word-size, 1em); }
     .caption {
       position: absolute;
       bottom: calc(100% + 32px);
@@ -145,7 +146,7 @@
     #criteria td { text-align: right; font-variant-numeric: tabular-nums; }
     #criteria button { position: absolute; top: 0; right: 0; width: 2rem; height: 2rem; border: 0; font: inherit; font-size: 1.4rem; color: inherit; background: transparent; cursor: pointer; }
     .result-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: .65rem; padding: 0 1rem; }
-    .share { border: 2px solid currentColor; border-radius: 2rem; padding: .7rem 1.3rem; color: inherit; text-decoration: none; }
+    .menu .result-action { background: transparent; border: 2px solid currentColor; border-radius: 2rem; padding: .7rem 1.3rem; color: inherit; text-decoration: none; }
     .brand { position: fixed; right: max(1rem, env(safe-area-inset-right)); bottom: max(.5rem, env(safe-area-inset-bottom)); min-height: 40px; display: inline-flex; align-items: center; gap: .215385em; color: inherit; text-decoration: none; font: 400 19px/1.1 "Brand Barlow", sans-serif; letter-spacing: -.055em; }
     /* Copyright 2017 The Barlow Project Authors (https://github.com/jpt/barlow)
 
@@ -263,10 +264,11 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
       -webkit-user-select: none;
       user-select: none;
       -webkit-touch-callout: none;
+      -webkit-tap-highlight-color: transparent;
     }
     @media (max-width: 900px) {
       .stage { --face-width: min(24vw, 16svh); }
-      .result { font-size: min(7rem, 18svh, calc((94vw - 2 * var(--face-width)) / var(--letters, 1))); }
+      .result { font-size: min(9rem, 22svh, calc((94vw - 2 * var(--face-width)) / var(--letters, 1))); }
     }
     @media (max-height: 480px) and (orientation: landscape) {
       .stage { --face-width: min(13vw, 24svh); --result-gap: 50px; }
@@ -348,7 +350,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
     </div>
     <div class="result-actions">
       <button id="replay" type="button">다시하기</button>
-      <a id="share" class="share" target="_blank" rel="noopener noreferrer">트위터에 결과 공유</a>
+      <button id="send-result" class="result-action" type="button">트위터에 결과 공유</button>
     </div>
     <button id="criteria-button" type="button" aria-haspopup="dialog">등급 산출 기준</button>
     <a class="brand" href="https://ameno.cc/" aria-label="AmenoRica 홈페이지">
@@ -408,6 +410,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         ], { duration: 300, easing: "ease-in" }).finished.then(() => previous.remove());
       }
       result.style.setProperty("--letters", word.length);
+      result.style.setProperty("--word-size", (.32 + .68 * earned / 150) + "em");
       const wordNode = result.querySelector(".word");
       wordNode.textContent = word;
       result.querySelector(".combo").textContent = streak >= 3 ? streak + " 콤보" : "";
@@ -551,6 +554,28 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
       document.querySelector("#replay").focus();
     }
 
+    let resultText = "";
+    const sendResult = document.querySelector("#send-result");
+    const mobileSharing = navigator.maxTouchPoints > 0 && matchMedia("(pointer: coarse)").matches;
+    if (mobileSharing) sendResult.textContent = "결과 공유";
+    sendResult.addEventListener("click", async () => {
+      if (mobileSharing) {
+        if (navigator.share) {
+          try {
+            await navigator.share({ text: resultText });
+            return;
+          } catch (error) {
+            if (error.name === "AbortError") return;
+          }
+        }
+        window.prompt("결과를 복사하세요", resultText);
+        return;
+      }
+      const url = new URL("https://twitter.com/intent/tweet");
+      url.searchParams.set("text", resultText);
+      window.open(url.href, "_blank", "noopener,noreferrer");
+    });
+
     function timeAvailable() {
       if (!playing) return false;
       if (performance.now() < deadline) return true;
@@ -564,10 +589,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
       const grade = grades.findLast(entry => points >= entry.min);
       document.querySelector("#grade").textContent = grade.rank;
       document.querySelector("#verdict").textContent = grade.text;
-      const shareUrl = new URL("https://twitter.com/intent/tweet");
-      const siteLink = "https://umm.ameno.cc/";
-      shareUrl.searchParams.set("text", `#이번_엄은_다르다 이번 엄은 ${points}점, ${bestCombo}콤보. ${grade.rank}등급. ${grade.text}\n${siteLink}`);
-      document.querySelector("#share").href = shareUrl.href;
+      resultText = `#이번_엄은_다르다 이번 엄은 ${points}점, ${bestCombo}콤보. ${grade.rank}등급. ${grade.text}\nhttps://umm.ameno.cc/`;
       revealSummary();
       return false;
     }
@@ -708,8 +730,28 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
       if (beginHold(letter, event.code)) event.preventDefault();
     });
 
+    // Handle touch holds directly so suppressing Safari's long-press default
+    // does not make scoring depend on synthesized mouse or pointer events.
+    const nativeTouch = "ontouchstart" in window;
+    document.addEventListener("touchstart", event => {
+      if (!playing) return;
+      if (event.cancelable) event.preventDefault();
+      for (const touch of event.changedTouches) {
+        const letter = pads.indexOf(touch.target.closest?.(".pads button"));
+        if (letter >= 0) beginHold(letter, "touch-" + touch.identifier);
+      }
+    }, { capture: true, passive: false });
+    for (const type of ["touchend", "touchcancel"]) {
+      document.addEventListener(type, event => {
+        for (const touch of event.changedTouches) {
+          if (inputOwner === "touch-" + touch.identifier) finishHold();
+        }
+      }, true);
+    }
+
     pads.forEach((pad, letter) => {
       pad.addEventListener("pointerdown", event => {
+        if (nativeTouch && event.pointerType === "touch") return;
         if (event.button !== 0 || !beginHold(letter, event.pointerId)) return;
         event.preventDefault();
         pad.setPointerCapture(event.pointerId);
