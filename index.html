@@ -258,6 +258,12 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
     }
     .face svg { display: block; width: 100%; }
     .face-eyes { transform-box: fill-box; transform-origin: center; }
+    body:has(.stage:not([hidden])),
+    .stage, .stage * {
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-touch-callout: none;
+    }
     @media (max-width: 900px) {
       .stage { --face-width: min(24vw, 16svh); }
       .result { font-size: min(7rem, 18svh, calc((94vw - 2 * var(--face-width)) / var(--letters, 1))); }
@@ -286,8 +292,6 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         font-size: 1.6rem;
         font-weight: 700;
         touch-action: none;
-        user-select: none;
-        -webkit-touch-callout: none;
       }
       .pads button.held { color: #f4f4f4; background: #101a32; }
     }
@@ -715,8 +719,13 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
           if (event.pointerId === inputOwner) finishHold();
         });
       }
-      pad.addEventListener("contextmenu", event => event.preventDefault());
     });
+
+    for (const type of ["selectstart", "contextmenu"]) {
+      document.addEventListener(type, event => {
+        if (playing) event.preventDefault();
+      });
+    }
 
     function finishHold() {
       if (started === null || !timeAvailable()) return;
