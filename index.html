@@ -259,7 +259,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
       font-size: 1rem;
       pointer-events: none;
     }
-    .keyboard-hint svg { width: 6rem; height: auto; }
+    .keyboard-hint svg { width: clamp(12rem, 17vw, 15rem); height: auto; }
     .face {
       position: absolute;
       left: clamp(4px, 2vw, 32px);
@@ -349,11 +349,37 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
     <div class="caption" aria-live="polite"></div>
     <div class="clock" role="timer" aria-label="남은 시간">30.000</div>
     <div class="keyboard-hint" role="img" aria-label="키보드로 ㅇ, ㅓ, ㅁ 입력">
-      <svg viewBox="0 0 96 36" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-        <rect x="1" y="1" width="94" height="34" rx="5"/>
-        <path d="M8 7h22v17H8z M37 7h22v17H37z M66 7h22v17H66z M29 29h38"/>
-        <g fill="currentColor" stroke="none" font-size="14" text-anchor="middle">
-          <text x="19" y="21">ㅇ</text><text x="48" y="21">ㅓ</text><text x="77" y="21">ㅁ</text>
+      <svg viewBox="0 0 228 78" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">
+        <defs>
+          <pattern id="key-row" width="17" height="15" patternUnits="userSpaceOnUse">
+            <rect x="1" y="1" width="14" height="12" rx="2"/>
+          </pattern>
+          <g id="key-strip"><rect width="170" height="15" fill="url(#key-row)" stroke="none"/></g>
+        </defs>
+        <rect x="1" y="1" width="226" height="76" rx="7"/>
+        <path d="M4 71 Q5 74 10 74 H218 Q223 74 224 71" opacity=".45"/>
+        <g opacity=".55">
+          <use href="#key-strip" x="8" y="7"/>
+          <rect x="179" y="8" width="40" height="12" rx="2"/>
+          <rect x="9" y="23" width="17" height="12" rx="2"/>
+          <use href="#key-strip" x="28" y="22"/>
+          <rect x="200" y="23" width="19" height="12" rx="2"/>
+          <rect x="9" y="38" width="22" height="12" rx="2"/>
+          <use href="#key-strip" x="33" y="37"/>
+          <rect x="205" y="38" width="14" height="12" rx="2"/>
+          <rect x="9" y="54" width="24" height="13" rx="2"/>
+          <rect x="37" y="54" width="19" height="13" rx="2"/>
+          <rect x="60" y="54" width="103" height="13" rx="2"/>
+          <rect x="167" y="54" width="24" height="13" rx="2"/>
+          <rect x="195" y="54" width="24" height="13" rx="2"/>
+        </g>
+        <g fill="currentColor">
+          <rect x="34" y="37" width="14" height="14" rx="2"/>
+          <rect x="68" y="37" width="14" height="14" rx="2"/>
+          <rect x="136" y="37" width="14" height="14" rx="2"/>
+        </g>
+        <g fill="#f4f4f4" stroke="none" font-size="13" text-anchor="middle">
+          <text x="41" y="48.5">ㅁ</text><text x="75" y="48.5">ㅇ</text><text x="143" y="48.5">ㅓ</text>
         </g>
       </svg>
     </div>
