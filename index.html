@@ -259,7 +259,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
       font-size: 1rem;
       pointer-events: none;
     }
-    .keyboard-hint svg { width: 1.75rem; height: auto; }
+    .keyboard-hint svg { width: 6rem; height: auto; }
     .face {
       position: absolute;
       left: clamp(4px, 2vw, 32px);
@@ -348,12 +348,14 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
     <div class="result" aria-live="polite" aria-atomic="true"><div class="combo"></div><div class="word"></div><div class="score"></div></div>
     <div class="caption" aria-live="polite"></div>
     <div class="clock" role="timer" aria-label="남은 시간">30.000</div>
-    <div class="keyboard-hint" role="img" aria-label="키보드 입력: ㅇ은 D, ㅓ는 J, ㅁ은 A">
-      <svg viewBox="0 0 28 18" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-        <rect x="1" y="1" width="26" height="16" rx="3"/>
-        <path stroke-linecap="round" d="M5 5h1m4 0h1m4 0h1m4 0h1M6 9h1m4 0h1m4 0h1m4 0h1M9 13h10"/>
+    <div class="keyboard-hint" role="img" aria-label="키보드로 ㅇ, ㅓ, ㅁ 입력">
+      <svg viewBox="0 0 96 36" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+        <rect x="1" y="1" width="94" height="34" rx="5"/>
+        <path d="M8 7h22v17H8z M37 7h22v17H37z M66 7h22v17H66z M29 29h38"/>
+        <g fill="currentColor" stroke="none" font-size="14" text-anchor="middle">
+          <text x="19" y="21">ㅇ</text><text x="48" y="21">ㅓ</text><text x="77" y="21">ㅁ</text>
+        </g>
       </svg>
-      <span>D · J · A</span>
     </div>
     <div class="pads" role="group" aria-label="리듬 입력">
       <button type="button">ㅇ</button><button type="button">ㅓ</button><button type="button">ㅁ</button>
@@ -609,7 +611,8 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
       const grade = grades.findLast(entry => points >= entry.min);
       document.querySelector("#grade").textContent = grade.rank;
       document.querySelector("#verdict").textContent = grade.text;
-      resultText = `#이번_엄은_다르다 이번 엄은 ${points}점, ${bestCombo}콤보. ${grade.rank}등급. ${grade.text}\nhttps://umm.ameno.cc/`;
+      const gradePath = grade.rank.toLowerCase().replace("+", "-plus");
+      resultText = `#이번_엄은_다르다 이번 엄은 ${points}점, ${bestCombo}콤보. ${grade.rank}등급. ${grade.text}\nhttps://umm.ameno.cc/r/${gradePath}/`;
       revealSummary();
       return false;
     }
