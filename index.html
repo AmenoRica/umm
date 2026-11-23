@@ -245,6 +245,22 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
     .combo { margin-bottom: .4rem; font-size: clamp(.85rem, 2.5svh, 1.2rem); }
     .combo:empty { display: none; }
     .pads { display: none; }
+    .face {
+      position: fixed;
+      left: clamp(8px, 3vw, 48px);
+      bottom: -3px;
+      width: clamp(88px, 13vw, 178px);
+      pointer-events: none;
+      color: #101a32;
+    }
+    .face svg { display: block; width: 100%; }
+    .face-eyes { transform-box: fill-box; transform-origin: center; }
+    @media (max-width: 767px) {
+      .face { width: min(22vw, 12svh); left: 10px; bottom: calc(max(1rem, 8svh) + clamp(3rem,19vw,5rem) + 6px); }
+    }
+    @media (max-height: 480px) and (orientation: landscape) {
+      .face { width: min(12vw, 25svh); bottom: -3px; }
+    }
     @media (max-width: 767px), (max-width: 940px) and (max-height: 500px) and (pointer: coarse) {
       .pads {
         position: fixed;
@@ -292,6 +308,18 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
     <button id="sound-toggle" type="button" role="switch" aria-label="게임 소리" aria-checked="false">소리 꺼짐</button>
   </main>
   <main class="stage" aria-label="엄 리듬 바" hidden>
+    <div class="face" aria-hidden="true">
+      <svg viewBox="0 0 152 166" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+        <path fill="#f4f4f4" d="M10 169 Q12 144 43 142 L55 123 H95 L100 143 Q133 145 146 169Z"/>
+        <path id="face-outline" fill="#f4f4f4" d="M28 77 C20 48 30 20 61 16 Q94 9 112 32 Q123 47 118 72 C133 71 130 91 116 93 Q114 137 79 141 Q44 142 34 99 C19 101 13 79 28 77Z"/>
+        <path d="M44 54 L61 52 M83 50 L101 49 M74 65 L71 79 L78 79"/>
+        <g class="face-eyes" fill="currentColor" stroke="none">
+          <ellipse cx="56" cy="63" rx="3" ry="5"/><ellipse cx="95" cy="60" rx="3" ry="5"/>
+        </g>
+        <path id="face-mouth" fill="currentColor" d="M55 97 Q73 96 91 95 Q74 98 55 97Z"/>
+        <path d="M38 149 L51 158 L61 148 M90 148 L99 156 L110 145"/>
+      </svg>
+    </div>
     <div class="bar">
       <span aria-current="step">ㅇ</span><span>ㅓ</span><span>ㅁ</span>
     </div>
@@ -602,11 +630,31 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
     function paint() {
       const elapsed = performance.now() - started;
       const target = durations[index];
+      poseFace(order[index], Math.min(1, elapsed / target));
       const remaining = Math.max(0, 1 - elapsed / target);
       const heat = Math.min(1, Math.max(0, (elapsed - target) / 400));
       cells[index].style.setProperty("--remaining", 100 * remaining + "%");
       cells[index].style.setProperty("--heat", 100 * heat + "%");
       return heat;
+    }
+
+    const outline = document.querySelector("#face-outline");
+    const mouth = document.querySelector("#face-mouth");
+    const eyes = document.querySelector(".face-eyes");
+    function poseFace(letter, amount) {
+      const puff = letter === 0 ? 12 * amount : 0;
+      const jaw = letter === 1 ? 4 + 18 * amount : 0;
+      outline.setAttribute("d", `M28 77 C20 48 30 20 61 16 Q94 9 112 32 Q123 47 118 72 C133 71 130 91 116 93 Q${114+puff*2} ${137+jaw} 79 ${141+jaw} Q${44-puff*2} ${142+jaw} 34 99 C19 101 13 79 28 77Z`);
+      mouth.setAttribute("d", `M55 97 Q73 ${96-jaw*.35} 91 95 Q74 ${98+jaw*2} 55 97Z`);
+    }
+
+    function reactFace(score) {
+      poseFace(2, 0);
+      if (score === 0) {
+        eyes.animate([{ transform: "scaleY(1)" }, { transform: "scaleY(.1)" }, { transform: "scaleY(1)" }], { duration: 230 });
+      } else {
+        outline.animate([{ transform: "scaleY(1)" }, { transform: "scaleY(1.035)" }, { transform: "scaleY(.986)" }, { transform: "scaleY(1)" }], { duration: 235, easing: "ease-out" });
+      }
     }
 
     async function changeRound() {
@@ -670,6 +718,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
       index++;
       if (index === cells.length) {
         const score = scoreRound(held, durations);
+        reactFace(score);
         const letterTimes = [0, 0, 0];
         order.forEach((letter, i) => { letterTimes[letter] += held[i]; });
         const word = resultWord(letterTimes, score);
