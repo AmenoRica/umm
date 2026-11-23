@@ -436,7 +436,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
       const wordNode = result.querySelector(".word");
       wordNode.textContent = word;
       result.querySelector(".combo").textContent = streak >= 3 ? streak + " 콤보" : "";
-      if (streak) {
+      if (score >= 95) {
         wordNode.animate([
           { textShadow: "0 0 0 transparent" },
           { textShadow: "0 0 9px #101a3266", offset: .35 },
@@ -812,7 +812,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         const letterTimes = [0, 0, 0];
         order.forEach((letter, i) => { letterTimes[letter] += held[i]; });
         const word = resultWord(letterTimes, score);
-        combo = score >= 95 ? combo + 1 : 0;
+        combo = score >= 90 ? combo + 1 : 0;
         const multiplier = combo >= 6 ? 1.5 : combo >= 3 ? 1.2 : 1;
         const earned = Math.round(score * multiplier);
         points += earned;
