@@ -248,7 +248,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
     .face {
       position: fixed;
       left: clamp(8px, 3vw, 48px);
-      bottom: -3px;
+      bottom: 30svh;
       width: clamp(88px, 13vw, 178px);
       pointer-events: none;
       color: #101a32;
@@ -256,10 +256,10 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
     .face svg { display: block; width: 100%; }
     .face-eyes { transform-box: fill-box; transform-origin: center; }
     @media (max-width: 767px) {
-      .face { width: min(22vw, 12svh); left: 10px; bottom: calc(max(1rem, 8svh) + clamp(3rem,19vw,5rem) + 6px); }
+      .face { width: min(22vw, 12svh); left: 10px; bottom: auto; top: calc(50% + 2.25rem); }
     }
     @media (max-height: 480px) and (orientation: landscape) {
-      .face { width: min(12vw, 25svh); bottom: -3px; }
+      .face { width: min(11vw, 20svh); top: calc(50% + 1.8rem); bottom: auto; }
     }
     @media (max-width: 767px), (max-width: 940px) and (max-height: 500px) and (pointer: coarse) {
       .pads {
@@ -309,15 +309,13 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
   </main>
   <main class="stage" aria-label="엄 리듬 바" hidden>
     <div class="face" aria-hidden="true">
-      <svg viewBox="0 0 152 166" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-        <path fill="#f4f4f4" d="M10 169 Q12 144 43 142 L55 123 H95 L100 143 Q133 145 146 169Z"/>
-        <path id="face-outline" fill="#f4f4f4" d="M28 77 C20 48 30 20 61 16 Q94 9 112 32 Q123 47 118 72 C133 71 130 91 116 93 Q114 137 79 141 Q44 142 34 99 C19 101 13 79 28 77Z"/>
-        <path d="M44 54 L61 52 M83 50 L101 49 M74 65 L71 79 L78 79"/>
+      <svg viewBox="0 0 150 156" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+        <path id="face-outline" fill="#f4f4f4"/>
+        <path d="M88 46 Q99 43 108 45 M53 74 Q41 65 39 77 Q38 85 47 88 M44 77 Q50 75 50 81"/>
         <g class="face-eyes" fill="currentColor" stroke="none">
-          <ellipse cx="56" cy="63" rx="3" ry="5"/><ellipse cx="95" cy="60" rx="3" ry="5"/>
+          <ellipse cx="105" cy="55" rx="2.8" ry="4.4"/>
         </g>
-        <path id="face-mouth" fill="currentColor" d="M55 97 Q73 96 91 95 Q74 98 55 97Z"/>
-        <path d="M38 149 L51 158 L61 148 M90 148 L99 156 L110 145"/>
+        <path id="face-mouth" fill="currentColor"/>
       </svg>
     </div>
     <div class="bar">
@@ -644,9 +642,11 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
     function poseFace(letter, amount) {
       const puff = letter === 0 ? 12 * amount : 0;
       const jaw = letter === 1 ? 4 + 18 * amount : 0;
-      outline.setAttribute("d", `M28 77 C20 48 30 20 61 16 Q94 9 112 32 Q123 47 118 72 C133 71 130 91 116 93 Q${114+puff*2} ${137+jaw} 79 ${141+jaw} Q${44-puff*2} ${142+jaw} 34 99 C19 101 13 79 28 77Z`);
-      mouth.setAttribute("d", `M55 97 Q73 ${96-jaw*.35} 91 95 Q74 ${98+jaw*2} 55 97Z`);
+      // The nose and upper lip stay still while the cheek swells and the jaw drops.
+      outline.setAttribute("d", `M26 85 C8 54 22 19 54 13 C81 7 107 17 112 40 Q113 56 128 68 Q132 73 118 76 Q116 81 119 85 L116 89 Q${120+puff} ${94+jaw} ${114+puff} ${106+jaw} Q110 ${125+jaw} 94 ${124+jaw} Q61 ${123+jaw} 39 102 Q31 96 26 85Z`);
+      mouth.setAttribute("d", `M95 88 Q105 90 117 86 Q114 ${92+jaw} 106 ${91+jaw*.75} Q99 ${90+jaw*.35} 95 88Z`);
     }
+    poseFace(2, 0);
 
     function reactFace(score) {
       poseFace(2, 0);
