@@ -635,7 +635,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
       sendResult.textContent = "결과 공유";
       document.querySelector("#grade").textContent = grade.rank;
       document.querySelector("#verdict").textContent = grade.text;
-      const gradePath = grade.rank === "A" ? "a/v2" : grade.rank.toLowerCase().replace("+", "-plus");
+      const gradePath = grade.rank.toLowerCase().replace("+", "-plus");
       resultText = `ㅇ ㅓ ㅁ 세 키로 하는 30초 게임 #이번_엄은_다르다\n\n${points}점 · ${bestCombo}콤보 · ${grade.rank}\n${grade.text}\n\n당신의 엄은 몇 점입니까?\nhttps://umm.ameno.cc/r/${gradePath}/`;
       revealSummary();
       return false;
