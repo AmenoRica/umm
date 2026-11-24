@@ -485,10 +485,15 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
   let lastFrame;
   let dropsUntilFinish = 0;
 
+  const maxSpeed = 3.5;
+  let flowSpeed;
   function setSpeed(value) {
-    speed = value;
-    flow.playbackRate = speed;
-    stage.style.setProperty('--streak-fill', speed / 3);
+    speed = Math.min(maxSpeed, value);
+    const rounded = Math.round(speed * 100) / 100;
+    if (rounded === flowSpeed) return;
+    flowSpeed = rounded;
+    flow.updatePlaybackRate(rounded);
+    stage.style.setProperty('--streak-fill', rounded / 3);
   }
 
   function attachLetter(value) {
@@ -660,7 +665,8 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
       }
       collected += item.textContent;
       attachLetter(item.textContent);
-      setSpeed(Math.min(5, 1 + collected.length * .16));
+      const pickupBoost = .16 - .06 * Math.min(1, speed - 1);
+      setSpeed(speed + pickupBoost);
       item.remove();
     }
   }
@@ -674,6 +680,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
       const restoringVelocity = lagVelocity + 6 * lag;
       const nextLag = (lag + restoringVelocity * dt) * decay;
       lagVelocity = (lagVelocity - 6 * restoringVelocity * dt) * decay;
+      if (playing && speed < maxSpeed) setSpeed(speed + .05 * dt);
       const baseVelocity = 300 * speed;
       const distance = dt * baseVelocity;
       lag = nextLag;
