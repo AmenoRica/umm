@@ -232,7 +232,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
     border: 1px solid #96a6bd; border-radius: 8px; padding: 15px 38px;
     background: #dce3ed; color: #131d32; font: 700 25px var(--ui-font); cursor: pointer;
   }
-  .screen #sound-toggle {
+  .screen .sound-toggle {
     display: block; margin: 10px auto 0; padding: 9px 18px; min-height: 44px;
     border: 0; background: transparent; color: #c5cedd; font-size: 18px;
   }
@@ -247,7 +247,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
   #score { margin-bottom: 22px; font-size: 22px; }
   #score-total { font-weight: 800; font-size: 36px; }
   .screen #open-scoring {
-    display: block; margin: 12px auto 0; padding: 7px 12px; background: transparent;
+    display: block; margin: 30px auto 0; padding: 7px 12px; background: transparent;
     border: 0; color: #99a6bb; font-size: 16px; font-weight: 400;
   }
   .screen #open-scoring:is(:hover, :focus-visible) { text-decoration: underline; }
@@ -469,7 +469,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
       <p class="credit">feat. 케이 스텔라리아</p>
       <p class="rules">요를 좌우로 드래그하면서 요~이를 완성하자.<br><b class="danger">쉣</b>에 닿으면 게임 오버! 누구보다 긴 요이를 만들어보자!</p>
       <button type="button" id="start" aria-haspopup="dialog" aria-controls="how-to">시작하기</button>
-      <button type="button" id="sound-toggle" aria-label="게임 소리" aria-pressed="true">소리 끄기</button>
+      <button type="button" id="sound-toggle" class="sound-toggle" aria-label="게임 소리" aria-pressed="true">소리 끄기</button>
     </div>
   </section>
   <section id="over" class="screen" aria-label="게임 결과" hidden>
@@ -483,6 +483,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
       <button type="button" id="share">결과 공유</button>
       <a id="card-download" download="yoi-result.png" hidden>결과 이미지 저장</a>
       <textarea id="share-copy" aria-label="복사할 공유 문구" readonly hidden></textarea>
+      <button type="button" class="sound-toggle" aria-label="게임 소리" aria-pressed="true">소리 끄기</button>
       <button type="button" id="open-scoring" aria-haspopup="dialog">채점 기준 확인</button>
     </div>
   </section>
@@ -855,26 +856,35 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
   let audioContext;
   const liveSources = new Set();
 
-  const soundToggle = document.querySelector('#sound-toggle');
+  const soundToggles = document.querySelectorAll('.sound-toggle');
   const soundKey = 'yoi.soundEnabled';
   let soundEnabled = true;
+  let masterGain;
   try { soundEnabled = localStorage.getItem(soundKey) !== 'off'; } catch {}
-  function updateSoundToggle() {
-    soundToggle.textContent = soundEnabled ? '소리 끄기' : '소리 켜기';
-    soundToggle.setAttribute('aria-pressed', String(soundEnabled));
+  function updateSoundToggles() {
+    for (const button of soundToggles) {
+      button.textContent = soundEnabled ? '소리 끄기' : '소리 켜기';
+      button.setAttribute('aria-pressed', String(soundEnabled));
+    }
   }
-  updateSoundToggle();
-  soundToggle.onclick = () => {
+  function toggleSound() {
     soundEnabled = !soundEnabled;
-    updateSoundToggle();
+    if (masterGain) masterGain.gain.setTargetAtTime(soundEnabled ? 1 : 0, audioContext.currentTime, .005);
+    updateSoundToggles();
     try { localStorage.setItem(soundKey, soundEnabled ? 'on' : 'off'); } catch {}
-  };
+  }
+  updateSoundToggles();
+  for (const button of soundToggles) button.onclick = toggleSound;
 
   function prepareVoice() {
-    if (!soundEnabled) return;
     const Audio = window.AudioContext || window.webkitAudioContext;
     if (!Audio) return;
-    audioContext ??= new Audio();
+    if (!audioContext) {
+      audioContext = new Audio();
+      masterGain = audioContext.createGain();
+      masterGain.gain.value = soundEnabled ? 1 : 0;
+      masterGain.connect(audioContext.destination);
+    }
     audioContext.resume().catch(() => {});
   }
 
@@ -924,7 +934,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
     }
     const source = audioContext.createBufferSource();
     source.buffer = pickupVoices.get(symbol);
-    source.connect(audioContext.destination);
+    source.connect(masterGain);
     source.onended = () => source.disconnect();
     source.start();
   }
@@ -1012,7 +1022,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
   }
 
   function readResult(word) {
-    const voice = soundEnabled ? audioContext : null;
+    const voice = audioContext;
     let phraseTime = 0;
     const cues = [];
     const sustainBeats = .3;
@@ -1068,7 +1078,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
     for (const { start, buffer } of notes) {
       const source = voice.createBufferSource();
       source.buffer = buffer;
-      source.connect(voice.destination);
+      source.connect(masterGain);
       liveSources.add(source);
       source.onended = () => {
         liveSources.delete(source);
