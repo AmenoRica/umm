@@ -680,7 +680,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
       const restoringVelocity = lagVelocity + 6 * lag;
       const nextLag = (lag + restoringVelocity * dt) * decay;
       lagVelocity = (lagVelocity - 6 * restoringVelocity * dt) * decay;
-      if (playing && speed < maxSpeed) setSpeed(speed + .05 * dt);
+      if (playing && speed < maxSpeed) setSpeed(speed + .075 * dt);
       const baseVelocity = 300 * speed;
       const distance = dt * baseVelocity;
       lag = nextLag;
